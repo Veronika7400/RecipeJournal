@@ -19,7 +19,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "newArchEnabled": true
+      "newArchEnabled": true,
+      "package": "com.veronikat.RecipeJournalApp"
     },
     "web": {
       "favicon": "./assets/favicon.png"
