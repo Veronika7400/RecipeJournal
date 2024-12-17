@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         borderRadius: 8,
         marginBottom: 10,
-        marginTop: 15,
+        marginTop: 20,
     },
     stratisticsContainer: {
         width: '100%',
@@ -177,6 +177,44 @@ const styles = StyleSheet.create({
         borderRadius: 8,
         marginBottom: 10,
     },
+    profileImage: {
+        width: 150,
+        height: 150,
+        borderRadius: 75,  
+    },
+    removeImageButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        width: '32%',
+      },
+      galleryButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        width: '32%', 
+      },
+      cameraButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 10,
+        paddingHorizontal: 20,
+        borderRadius: 10,
+        width: '32%', 
+      },
+      imageButtons: {
+        flexDirection: 'row',            
+        justifyContent: 'space-between', 
+        marginBottom: 20,               
+        marginHorizontal: 10,            
+      },
 });
 
 export default styles;

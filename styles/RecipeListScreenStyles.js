@@ -96,10 +96,16 @@ const styles = StyleSheet.create({
     color: '#666',
     marginLeft: 5,
   },
-  fab: {
+  fabContainer: {
+    flexDirection: 'column',
+    justifyContent: 'space-evenly',
     position: 'absolute',
     bottom: 80,
     right: 20,
+    width: 60,
+    paddingVertical: 10,
+  },
+  fab: {
     backgroundColor: '#505050',
     width: 60,
     height: 60,

@@ -17,7 +17,8 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#ffffff",
+        "permissions": ["WRITE_EXTERNAL_STORAGE"]
       },
       "newArchEnabled": true,
       "package": "com.veronikat.RecipeJournalApp"
@@ -29,6 +30,13 @@
       "eas": {
         "projectId": "966fa3fb-6a7f-4401-8cc7-6db0d841210e"
       }
+    },
+    "owner": "veronikat",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/966fa3fb-6a7f-4401-8cc7-6db0d841210e"
     }
   }
 }

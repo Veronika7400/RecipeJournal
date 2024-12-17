@@ -8,10 +8,11 @@ import { Picker } from '@react-native-picker/picker';
 import Ionicons from 'react-native-vector-icons/Ionicons';
 import NavigationButtons from '../components/NavigationButtons';
 import styles from '../styles/AddRecipeScreenStyles';
+import { useTranslation } from 'react-i18next';
 
 const AddRecipeScreen = ({ navigation, route }) => {
   const { categoryId, userId } = route.params;
-
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [image, setImage] = useState('');
   const [imageUpload, setImageUpload] = useState();
@@ -57,8 +58,8 @@ const AddRecipeScreen = ({ navigation, route }) => {
 
   const handleAddNewIngredient = async () => {
     if (!newIngredient) {
-      Alert.alert('Error', 'Please enter the name of the new ingredient.');
-      return;
+      Alert.alert(t('error'), t('ingredient_name_required'));
+        return;
     }
 
     try {
@@ -68,20 +69,20 @@ const AddRecipeScreen = ({ navigation, route }) => {
           ...prevIngredientsList,
           { id: newIngredientRef.id, name: newIngredient }
         ];
-        updatedList.sort((a, b) => a.name.localeCompare(b.name)); // Sortiranje po abecedi
+        updatedList.sort((a, b) => a.name.localeCompare(b.name)); 
         return updatedList;
       });
-      Alert.alert('Success', 'New ingredient added!');
+      Alert.alert(t('success'), t('new_ingredient_added'));
       closeIngredientModal();
     } catch (error) {
-      Alert.alert('Error', 'Adding ingredient failed. Try again.');
+      Alert.alert(t('error'), t('adding_ingredient_failed'));
       console.error("Error adding ingredient: ", error);
     }
   };
 
   const handleAddIngredientToRecipe = () => {
     if (!quantity || !unit || !selectedIngredient) {
-      Alert.alert('Error', 'Select an ingredient, quantity, and unit.');
+      Alert.alert(t('error'), t('ingredient_quantity_unit_required'));
       return;
     }
 
@@ -100,7 +101,7 @@ const AddRecipeScreen = ({ navigation, route }) => {
 
   const handleImagePick = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.Images,
       allowsEditing: true,
       quality: 1,
     });
@@ -120,7 +121,7 @@ const AddRecipeScreen = ({ navigation, route }) => {
   const handleImageCapture = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (permission.status !== 'granted') {
-      Alert.alert("Permission required", "Camera permission is required to take a photo.");
+      Alert.alert(t('permission_required'), t('camera_permission_required'));
       return;
     }
 
@@ -148,7 +149,7 @@ const AddRecipeScreen = ({ navigation, route }) => {
     const preparationTime = `${prepHoursValue}h ${prepMinutesValue}m`;
 
     if (!title || (prepHoursValue === 0 && prepMinutesValue === 0) || rating < 1 || rating > 5 || !servings || !steps || recipeIngredients.length === 0) {
-      Alert.alert('Error', 'Fill in all fields except for notes and add at least one ingredient.');
+      Alert.alert(t('error'), t('fill_in_all_fields'));
       return;
     }
 
@@ -171,10 +172,10 @@ const AddRecipeScreen = ({ navigation, route }) => {
         ingredients: recipeIngredients,
       });
 
-      Alert.alert('Success', 'Recipe added successfully!');
+      Alert.alert(t('success'), t('recipe_added_successfully'));
       navigation.goBack();
     } catch (error) {
-      Alert.alert('Error', 'Saving recipe failed. Try again.');
+      Alert.alert(t('error'), t('saving_recipe_failed'));
       console.error("Error adding recipe: ", error);
     }
   };
@@ -187,7 +188,7 @@ const AddRecipeScreen = ({ navigation, route }) => {
       const downloadUrl = await getDownloadURL(imageRef);
       return downloadUrl;
     } catch (error) {
-      Alert.alert("Error", "Image upload failed.");
+      Alert.alert(t('error'), t('image_upload_failed'));
       return '';
     }
   };
@@ -198,14 +199,14 @@ const AddRecipeScreen = ({ navigation, route }) => {
       case 'title':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Recipe Title</Text>
-            <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Enter title" />
+              <Text style={styles.sectionTitle}>{t('recipe_title')}</Text>
+            <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder={t( "enter_title")} />
           </View>
         );
       case 'image':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Recipe Image</Text>
+                  <Text style={styles.sectionTitle}>{t('recipe_image')}</Text>
 
             {image.uri ? (
               <View style={styles.imagePreviewContainer}>
@@ -215,7 +216,7 @@ const AddRecipeScreen = ({ navigation, route }) => {
                 </TouchableOpacity>
               </View>
             ) : (
-              <Text>No image selected</Text>
+              <Text>{t('no_image_selected')}</Text>
             )}
             
             <View style={styles.imageButtons}>
@@ -223,14 +224,14 @@ const AddRecipeScreen = ({ navigation, route }) => {
                 style={[styles.galleryButton]}
                 onPress={handleImagePick}>
                 <Ionicons name="image" size={30} color="#000" />
-                <Text style={styles.addButtonText}>Choose from Gallery</Text>
+                <Text style={styles.addButtonText}>{t('choose_from_gallery')}</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 style={[styles.cameraButton]}
                 onPress={handleImageCapture}>
                 <Ionicons name="camera" size={30} color="#000" />
-                <Text style={styles.addButtonText}>Take Photo</Text>
+                <Text style={styles.addButtonText}>{t('take_photo')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -238,7 +239,7 @@ const AddRecipeScreen = ({ navigation, route }) => {
       case 'prepTime':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Preparation Time</Text>
+            <Text style={styles.sectionTitle}>{t('preparation_time')}</Text>
             <View style={styles.rowContainer}>
               <Picker
                 selectedValue={prepHours}
@@ -265,7 +266,7 @@ const AddRecipeScreen = ({ navigation, route }) => {
       case 'ingredients':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Ingredients</Text>
+            <Text style={styles.sectionTitle}>{t('ingredients')}</Text>
             <Picker
               selectedValue={selectedIngredient}
               onValueChange={(itemValue) => {
@@ -274,20 +275,20 @@ const AddRecipeScreen = ({ navigation, route }) => {
               }}
               style={styles.picker}
             >
-              <Picker.Item label="Select ingredient" value="" />
+             <Picker.Item label={t('select_ingredient')} value="" />
               {ingredientsList.map((ingredient) => (
                 <Picker.Item key={ingredient.id} label={ingredient.name} value={ingredient.id} />
               ))}
-              <Picker.Item label="Add new ingredient" value="new" />
+              <Picker.Item label={t('add_new_ingredient')} value="new" />
             </Picker>
 
-            <Text style={styles.label}>Quantity</Text>
-            <TextInput style={styles.input} value={quantity} onChangeText={setQuantity} placeholder="Enter quantity" />
-            <Text style={styles.label}>Unit</Text>
-            <TextInput style={styles.input} value={unit} onChangeText={setUnit} placeholder="Enter unit" />
+            <Text style={styles.label}>{t('quantity')}</Text>
+            <TextInput style={styles.input} value={quantity} onChangeText={setQuantity} placeholder={t("enter_quantity")} />
+            <Text style={styles.label}>{t('unit')}</Text>
+            <TextInput style={styles.input} value={unit} onChangeText={setUnit} placeholder={t("enter_unit")} />
 
             <TouchableOpacity style={styles.addButton} onPress={handleAddIngredientToRecipe}>
-              <Text style={styles.addButtonText}>Add Ingredient</Text>
+            <Text style={styles.addButtonText}>{t('add_ingredient')}</Text>
             </TouchableOpacity>
 
             <FlatList
@@ -313,12 +314,12 @@ const AddRecipeScreen = ({ navigation, route }) => {
       case 'steps':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Preparation Steps</Text>
+            <Text style={styles.sectionTitle}>{t('steps')}</Text>
             <TextInput
               style={[styles.input, styles.stepsInput]}
               value={steps}
               onChangeText={setSteps}
-              placeholder="Enter preparation steps"
+              placeholder={t('enter_steps')}
               multiline
             />
           </View>
@@ -326,12 +327,12 @@ const AddRecipeScreen = ({ navigation, route }) => {
       case 'note':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Note</Text>
+            <Text style={styles.sectionTitle}>{t('notes')}</Text>
             <TextInput
               style={[styles.input, styles.noteInput]}
               value={note}
               onChangeText={setNote}
-              placeholder="Enter note"
+              placeholder={t('enter_note')}
               multiline
             />
           </View>
@@ -342,17 +343,18 @@ const AddRecipeScreen = ({ navigation, route }) => {
           <View style={styles.container}>
             <View style={styles.rowContainer}>
               <View style={styles.halfContainer}>
-                <Text style={styles.label}>Servings</Text>
+              <Text style={styles.sectionTitle}>{t('servings')}</Text>
                 <TextInput
                   style={styles.input}
                   value={servings}
                   onChangeText={setServings}
-                  placeholder="Number of servings"
+                  placeholder={t('enter_servings')}
                   keyboardType="numeric"
                 />
               </View>
+
               <View style={styles.halfContainer}>
-                <Text style={styles.label}>Rating</Text>
+              <Text style={styles.label}>{t('rating')}</Text>
                 <Picker
                   selectedValue={rating}
                   onValueChange={(itemValue) => setRating(itemValue)}
@@ -370,7 +372,7 @@ const AddRecipeScreen = ({ navigation, route }) => {
         return (
           <View style={styles.container}>
             <TouchableOpacity style={styles.saveButton} onPress={handleSaveRecipe}>
-              <Text style={styles.saveButtonText}>Save recipe</Text>
+            <Text style={styles.saveButtonText}>{t('save_recipe')}</Text>
             </TouchableOpacity>
           </View>
         );
@@ -396,7 +398,7 @@ const AddRecipeScreen = ({ navigation, route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Add Recipe</Text>
+        <Text style={styles.headerTitle}>{t('add_recipe')}</Text>
       </View>
 
       <FlatList
@@ -411,19 +413,19 @@ const AddRecipeScreen = ({ navigation, route }) => {
         visible={isModalVisible}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalView}>
-            <Text style={styles.sectionTitle}>Add New Ingredient</Text>
+          <Text style={styles.sectionTitle}>{t('add_new_ingredient')}</Text>
             <TextInput
               style={[styles.input, styles.fullWidthInput]}
               value={newIngredient}
               onChangeText={setNewIngredient}
-              placeholder="New ingredient name"
+              placeholder={t('new_ingredient_name')}
             />
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.cancelButton} onPress={closeIngredientModal}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveButton} onPress={handleAddNewIngredient}>
-                <Text style={styles.saveButtonText}>Add</Text>
+              <Text style={styles.saveButtonText}>{t('add')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -432,6 +434,6 @@ const AddRecipeScreen = ({ navigation, route }) => {
       <NavigationButtons navigation={navigation} />
     </ImageBackground>
   );
-};
+}
 
 export default AddRecipeScreen;

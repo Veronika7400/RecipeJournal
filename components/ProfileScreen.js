@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Modal, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Modal, Alert, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { getAuth, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import { doc, getDoc, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
-import { db } from '../firebaseConfig';
+import { db, storage } from '../firebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import { PieChart } from 'react-native-chart-kit';
 import { Dimensions } from 'react-native';
 import NavigationButtons from '../components/NavigationButtons';
 import styles from '../styles/ProfileScreenStyes';
+import { deleteObject, ref, getDownloadURL, uploadBytesResumable } from 'firebase/storage';
+import * as ImagePicker from 'expo-image-picker';
+import { useTranslation } from 'react-i18next';
 
 const screenWidth = Dimensions.get('window').width;
 
@@ -23,12 +26,15 @@ const ProfileScreen = () => {
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [recipeStats, setRecipeStats] = useState([]);
+    const [profileImage, setProfileImage] = useState(null);
+    const [isSaving, setIsSaving] = useState(false);
+    const [isImageDeleted, setIsImageDeleted] = useState(false);
     const auth = getAuth();
     const currentUser = auth.currentUser;
     const navigation = useNavigation();
     const usedColors = new Set();
     const isValidColor = (color) => /^#([0-9A-F]{3}){1,2}$/i.test(color);
-
+    const { t } = useTranslation();
     const generateRandomColor = () => {
         let color;
         do {
@@ -37,12 +43,41 @@ const ProfileScreen = () => {
         usedColors.add(color);
         return color;
     };
+
+    const handleImagePick = async () => {
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.Images,
+            allowsEditing: true,
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setProfileImage(result.assets[0].uri);
+        }
+    };
+
+    const handleImageCapture = async () => {
+        const permission = await ImagePicker.requestCameraPermissionsAsync();
+        if (permission.status !== 'granted') {
+            Alert.alert(t('permissionRequired'), t('cameraPermissionRequired'));
+            return;
+        }
+
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            quality: 1,
+        });
+
+        if (!result.canceled) {
+            setProfileImage(result.assets[0].uri);
+        }
+    };
+
     const fetchUserData = async () => {
         if (currentUser) {
             try {
                 const userDocRef = doc(db, 'users', currentUser.uid);
                 const userDoc = await getDoc(userDocRef);
-
                 if (userDoc.exists()) {
                     const data = userDoc.data();
                     setUserData(data);
@@ -51,8 +86,6 @@ const ProfileScreen = () => {
                 } else {
                     console.log("No user data found in Firestore.");
                 }
-
-
 
                 const recipesRef = collection(db, 'recipes');
                 const q = query(recipesRef, where('user', '==', currentUser.uid));
@@ -87,6 +120,21 @@ const ProfileScreen = () => {
             }
         }
     };
+    useFocusEffect(
+        React.useCallback(() => {
+            setFirstName('');
+            setLastName('');
+            setProfileImage(null);
+            setRecipeCount(0);
+            setRecipeStats([]);
+            setIsImageDeleted(false);
+            setLoading(true);
+            fetchUserData();
+            return () => {
+                setLoading(false);
+            };
+        }, [])
+    );
 
     useEffect(() => {
         fetchUserData();
@@ -94,10 +142,10 @@ const ProfileScreen = () => {
 
     useFocusEffect(
         React.useCallback(() => {
-            setLoading(true);  
+            setLoading(true);
             fetchUserData();
             return () => {
-                 setLoading(false);
+                setLoading(false);
             };
         }, [])
     );
@@ -109,41 +157,68 @@ const ProfileScreen = () => {
             </View>
         );
     }
-
-
     const handleSaveChanges = async () => {
         try {
+            setIsSaving(true);
             const userDocRef = doc(db, 'users', currentUser.uid);
+            let imageUrl = userData.profileImageUrl || '';
+
+            if (profileImage && profileImage !== userData.profileImageUrl) {
+                const response = await fetch(profileImage);
+                const blob = await response.blob();
+                const storageRef = ref(storage, `profile_images/${currentUser.uid}`);
+                const uploadTask = uploadBytesResumable(storageRef, blob);
+                await uploadTask;
+                imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            } else if (profileImage === '' && userData.profileImageUrl) {
+                const storageRef = ref(storage, `profile_images/${currentUser.uid}`);
+                await deleteObject(storageRef);
+                imageUrl = '';
+            } else {
+                imageUrl = userData.profileImageUrl || '';
+            }
+
             await updateDoc(userDocRef, {
                 firstName: firstName,
                 lastName: lastName,
+                profileImageUrl: imageUrl,
             });
-            Alert.alert('Success', 'Profile updated successfully');
+
+            setUserData({ ...userData, profileImageUrl: imageUrl });
+            Alert.alert(t('success'), t('profileUpdated'));
         } catch (error) {
             console.error("Error updating profile:", error);
-            Alert.alert('Error', 'Could not update profile. Please try again.');
+            Alert.alert(t('error'), t('updateFailed'));
+        } finally {
+            setIsSaving(false);
         }
     };
 
     const handleChangePassword = async () => {
         if (newPassword !== confirmPassword) {
-            Alert.alert("Error", "New passwords do not match.");
+            Alert.alert(t('error'), t('passwordsDoNotMatch'));
             return;
         }
         try {
             const credential = EmailAuthProvider.credential(currentUser.email, oldPassword);
             await reauthenticateWithCredential(currentUser, credential);
             await updatePassword(currentUser, newPassword);
-            Alert.alert('Success', 'Password updated successfully');
+            Alert.alert(t('success'), t('passwordUpdated'));
             setShowPasswordModal(false);
             setOldPassword('');
             setNewPassword('');
             setConfirmPassword('');
         } catch (error) {
             console.error("Error updating password:", error);
-            Alert.alert('Error', 'Could not update password. Please try again.');
+            Alert.alert(t('error'), t('passwordUpdateFailed'));
         }
     };
+
+    const handleDeleteImage = () => {
+        setProfileImage('');
+        setIsImageDeleted(true);
+    };
+
 
     if (loading) {
         return (
@@ -159,72 +234,111 @@ const ProfileScreen = () => {
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                     <Ionicons name="arrow-back" size={24} color="#333" />
                 </TouchableOpacity>
-                <Text style={styles.headerTitle}>Profile</Text>
+                <Text style={styles.headerTitle}>{t('profile')}</Text>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent}>
                 <View style={styles.profileInfoContainer}>
                     <View style={styles.profilePictureArea}>
-                        <Ionicons name="person-circle-outline" size={150} color="black" />
+                        {isImageDeleted ? (
+                            <Ionicons name="person-circle-outline" size={150} color="black" />
+                        ) : profileImage ? (
+                            <Image source={{ uri: profileImage }} style={styles.profileImage} />
+                        ) : (
+                            userData && userData.profileImageUrl && userData.profileImageUrl !== '' ? (
+                                <Image source={{ uri: userData.profileImageUrl }} style={styles.profileImage} />
+                            ) : (
+                                <Ionicons name="person-circle-outline" size={150} color="black" />
+                            )
+                        )}
                     </View>
-                    <Text style={styles.userName}>{firstName} {lastName}</Text>
+                    <Text style={styles.userName}>{firstName}{lastName}</Text>
+
+
                 </View>
                 <View style={styles.editContainer}>
-                    <Text style={styles.label}>First Name</Text>
+                    <View style={styles.imageButtons}>
+                        <TouchableOpacity
+                            style={[styles.galleryButton]}
+                            onPress={handleImagePick}>
+                            <Ionicons name="image" size={30} color="#000" />
+                            <Text style={styles.addButtonText}>{t('chooseFromGallery')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.cameraButton]}
+                            onPress={handleImageCapture}>
+                            <Ionicons name="camera" size={30} color="#000" />
+                            <Text style={styles.addButtonText}>{t('takePhoto')}</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.removeImageButton]}
+                            onPress={handleDeleteImage}>
+                            <Ionicons name="trash-outline" size={30} />
+                            <Text style={styles.deleteButtonText}>{t('deletePhoto')}</Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <Text style={styles.label}>{t('firstName')}</Text>
                     <TextInput
                         style={styles.input}
                         value={firstName}
                         onChangeText={setFirstName}
                     />
-                    <Text style={styles.label}>Last Name</Text>
+                    <Text style={styles.label}>{t('lastName')}</Text>
                     <TextInput
                         style={styles.input}
                         value={lastName}
                         onChangeText={setLastName}
                     />
-                    <Text style={styles.label}>Email</Text>
-                    <Text style={styles.emailText}>{userData.email}</Text>
+                    <Text style={styles.label}>{t('email')}</Text>
+                    {userData?.email && (
+                        <Text style={styles.emailText}>{userData.email}</Text>
+                    )}
 
                     <View style={styles.buttonContainer}>
-                        <TouchableOpacity style={styles.passwordButton} onPress={() => setShowPasswordModal(true)}>
-                            <Text style={styles.passwordButtonText}>Change Password</Text>
+                        <TouchableOpacity style={styles.passwordButton} disabled={isSaving} onPress={() => setShowPasswordModal(true)}>
+                        <Text style={styles.passwordButtonText}>{t('changePassword')}</Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
-                            <Text style={styles.saveButtonText}>Save Changes</Text>
+                            {isSaving ? (
+                                <ActivityIndicator size="small" color="#fff" />
+                            ) : (
+                                <Text style={styles.saveButtonText}>{t('saveChanges')}</Text>
+                            )}
                         </TouchableOpacity>
                     </View>
                     <Modal visible={showPasswordModal} transparent={true} animationType="slide">
                         <View style={styles.modalContainer}>
                             <View style={styles.modalContent}>
-                                <Text style={styles.modalTitle}>Change Password</Text>
+                                <Text style={styles.modalTitle}>{t('changePassword')}</Text>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="Current Password"
+                                    placeholder={t('currentPassword')}
                                     secureTextEntry
                                     value={oldPassword}
                                     onChangeText={setOldPassword}
                                 />
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="New Password"
+                                    placeholder={t('newPassword')}
                                     secureTextEntry
                                     value={newPassword}
                                     onChangeText={setNewPassword}
                                 />
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="Confirm New Password"
+                                    placeholder={t('confirmNewPassword')}
                                     secureTextEntry
                                     value={confirmPassword}
                                     onChangeText={setConfirmPassword}
                                 />
                                 <View style={styles.modalButtons}>
                                     <TouchableOpacity style={styles.modalButton} onPress={() => setShowPasswordModal(false)}>
-                                        <Text style={styles.cancelButtonText}>Cancel</Text>
+                                        <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
                                     </TouchableOpacity>
                                     <TouchableOpacity style={styles.modalButton} onPress={handleChangePassword}>
-                                        <Text style={styles.modalButtonText}>Change</Text>
+                                        <Text style={styles.modalButtonText}>{t('change')}</Text>
                                     </TouchableOpacity>
                                 </View>
                             </View>
@@ -235,7 +349,7 @@ const ProfileScreen = () => {
                     <View style={styles.statsContainer}>
                         <View style={styles.statCircle}>
                             <Text style={styles.statNumber}>{recipeCount}</Text>
-                            <Text style={styles.statTitle}>Your Recipes</Text>
+                            <Text style={styles.statTitle}>{t('yourRecipes')}</Text>
                         </View>
                     </View>
                     <PieChart

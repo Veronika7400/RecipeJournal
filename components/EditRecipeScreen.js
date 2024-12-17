@@ -8,12 +8,11 @@ import NavigationButtons from '../components/NavigationButtons';
 import styles from '../styles/EditRecipeScreenStyles';
 import * as ImagePicker from 'expo-image-picker';
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
-
-
+import { useTranslation } from 'react-i18next';
 
 const EditRecipeScreen = ({ navigation, route }) => {
   const { recipe } = route.params;
-
+  const { t } = useTranslation();
   const [title, setTitle] = useState(recipe.title || '');
   const [image, setImage] = useState(recipe.image || '');
   const [imageUpload, setImageUpload] = useState(null);
@@ -74,7 +73,7 @@ const EditRecipeScreen = ({ navigation, route }) => {
 
   const handleImagePick = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: ImagePicker.Images,
       allowsEditing: true,
       quality: 1,
     });
@@ -94,8 +93,8 @@ const EditRecipeScreen = ({ navigation, route }) => {
   const handleImageCapture = async () => {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (permission.status !== 'granted') {
-      Alert.alert("Permission required", "Camera permission is required to take a photo.");
-      return;
+      Alert.alert(t("error"), t("cameraPermissionRequired"));
+        return;
     }
 
     const result = await ImagePicker.launchCameraAsync({
@@ -124,7 +123,7 @@ const EditRecipeScreen = ({ navigation, route }) => {
       const downloadUrl = await getDownloadURL(imageRef);
       return downloadUrl;
     } catch (error) {
-      Alert.alert("Error", "Image upload failed.");
+      Alert.alert(t("error"), t("imageUploadFailed"));
       console.error("Error uploading image: ", error);
       return '';
     }
@@ -136,8 +135,8 @@ const EditRecipeScreen = ({ navigation, route }) => {
     const preparationTime = `${prepHoursValue}h ${prepMinutesValue}m`;
 
     if (!title || (prepHoursValue === 0 && prepMinutesValue === 0) || rating < 1 || rating > 5 || !servings || !steps || recipeIngredients.length === 0) {
-      Alert.alert('Error', 'Fill in all fields except for the note, add at least one ingredient, and make sure the rating is between 1 and 5.');
-      return;
+      Alert.alert(t("error"), t("fillAllFields"));
+        return;
     }
 
     try {
@@ -182,7 +181,7 @@ const EditRecipeScreen = ({ navigation, route }) => {
         ingredients: recipeIngredients,
       });
 
-      Alert.alert('Success', 'Recipe successfully updated!');
+      Alert.alert(t("success"), t("recipeUpdated"));
 
       navigation.navigate('RecipeDetails', {
         recipe: {
@@ -199,8 +198,7 @@ const EditRecipeScreen = ({ navigation, route }) => {
       });
     } catch (error) {
       console.error("Error updating recipe:", error);
-      Alert.alert('Error', 'Failed to update the recipe. Please try again.');
-    }
+      Alert.alert(t("error"), t("updateFailed"));  }
   };
 
   const handleRemoveImage = () => {
@@ -209,7 +207,7 @@ const EditRecipeScreen = ({ navigation, route }) => {
 
   const handleAddNewIngredient = async () => {
     if (!newIngredient) {
-      Alert.alert('Error', 'Enter the name of the new ingredient.');
+      Alert.alert(t('error'), t('enterIngredientName'));
       return;
     }
 
@@ -222,15 +220,15 @@ const EditRecipeScreen = ({ navigation, route }) => {
           ...prevIngredientsList,
           { id: newIngredientRef.id, name: newIngredient }
         ];
-        updatedList.sort((a, b) => a.name.localeCompare(b.name)); // Sortiranje po abecedi
-        return updatedList;
+        updatedList.sort((a, b) => a.name.localeCompare(b.name)); 
+          return updatedList;
       });
       
-      Alert.alert('Success', 'New ingredient added!');
+      Alert.alert(t('success'), t('ingredientAdded'));
       closeIngredientModal();
     } catch (error) {
-      Alert.alert('Error', 'Failed to add ingredient. Please try again.');
-    }
+      Alert.alert(t('error'), t('ingredientAddFailed'));
+     }
   };
 
   const handleRemoveIngredient = (ingredientId) => {
@@ -241,8 +239,8 @@ const EditRecipeScreen = ({ navigation, route }) => {
 
   const handleAddIngredientToRecipe = () => {
     if (!quantity || !unit || !selectedIngredient) {
-      Alert.alert('Error', 'Select an ingredient, quantity, and unit.');
-      return;
+      Alert.alert(t("error"), t("selectIngredient"));
+       return;
     }
 
     const ingredientToAdd = {
@@ -263,14 +261,14 @@ const EditRecipeScreen = ({ navigation, route }) => {
       case 'title':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Recipe Title</Text>
-            <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="Enter title" />
+           <Text style={styles.sectionTitle}>{t('recipeTitle')}</Text>
+             <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder={t('enterTitle')} />
           </View>
         );
         case 'image':
           return (
             <View style={styles.container}>
-              <Text style={styles.sectionTitle}>Recipe Image</Text>
+               <Text style={styles.sectionTitle}>{t('recipeImage')}</Text>
               
               {image && image.uri ? (
                 <View style={styles.imagePreviewContainer}>
@@ -280,18 +278,18 @@ const EditRecipeScreen = ({ navigation, route }) => {
                   </TouchableOpacity>
                 </View>
               ) : (
-                <Text>No image selected</Text>
+                <Text>{t('noImageSelected')}</Text>
               )}
         
               <View style={styles.imageButtons}>
                 <TouchableOpacity style={styles.galleryButton} onPress={handleImagePick}>
                   <Ionicons name="image" size={30} color="#000" />
-                  <Text style={styles.addButtonText}>Choose from Gallery</Text>
-                </TouchableOpacity>
+                  <Text style={styles.addButtonText}>{t('chooseFromGallery')}</Text>
+                      </TouchableOpacity>
         
                 <TouchableOpacity style={styles.cameraButton} onPress={handleImageCapture}>
                   <Ionicons name="camera" size={30} color="#000" />
-                  <Text style={styles.addButtonText}>Take Photo</Text>
+                  <Text style={styles.addButtonText}>{t('takePhoto')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -299,7 +297,7 @@ const EditRecipeScreen = ({ navigation, route }) => {
       case 'prepTime':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Preparation Time</Text>
+            <Text style={styles.sectionTitle}>{t('prepTime')}</Text>
             <View style={styles.rowContainer}>
               <Picker
                 selectedValue={prepHours}
@@ -328,17 +326,17 @@ const EditRecipeScreen = ({ navigation, route }) => {
           <View style={styles.container}>
             <View style={styles.rowContainer}>
               <View style={styles.halfContainer}>
-                <Text style={styles.label}>Servings</Text>
+              <Text style={styles.label}>{t('servings')}</Text>
                 <TextInput
                   style={styles.input}
                   value={servings.toString()}
                   onChangeText={(value) => setServings(parseInt(value, 10) || 0)}
-                  placeholder="Number of servings"
+                  placeholder={t('numberOfServings')}
                   keyboardType="numeric"
                 />
               </View>
               <View style={styles.halfContainer}>
-                <Text style={styles.label}>Rating</Text>
+              <Text style={styles.label}>{t('rating')}</Text>
                 <Picker
                   selectedValue={rating}
                   onValueChange={(itemValue) => setRating(itemValue)}
@@ -356,33 +354,33 @@ const EditRecipeScreen = ({ navigation, route }) => {
       case 'steps':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Preparation Steps</Text>
+            <Text style={styles.sectionTitle}>{t('prepSteps')}</Text>
             <TextInput
               style={[styles.input, styles.stepsInput]}
               value={steps}
               onChangeText={setSteps}
               multiline
-              placeholder="Enter preparation steps"
+              placeholder={t('enterSteps')}
             />
           </View>
         );
       case 'note':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Note</Text>
+              <Text style={styles.sectionTitle}>{t('notes')}</Text>
             <TextInput
               style={[styles.input, styles.noteInput]}
               value={note}
               onChangeText={setNote}
               multiline
-              placeholder="Enter note"
+              placeholder={t('enterNote')}
             />
           </View>
         );
       case 'ingredients':
         return (
           <View style={styles.container}>
-            <Text style={styles.sectionTitle}>Ingredients</Text>
+            <Text style={styles.sectionTitle}>{t('ingredients')}</Text>
             <Picker
               selectedValue={selectedIngredient}
               onValueChange={(itemValue) => {
@@ -391,20 +389,20 @@ const EditRecipeScreen = ({ navigation, route }) => {
               }}
               style={styles.picker}
             >
-              <Picker.Item label="Select an ingredient" value="" />
+              <Picker.Item label={t('selectIngredient')} value="" />
               {ingredientsList.map((ingredient) => (
                 <Picker.Item key={ingredient.id} label={ingredient.name} value={ingredient.id} />
               ))}
-              <Picker.Item label="Add new ingredient" value="new" />
+              <Picker.Item label={t('addNewIngredient')} value="new" />
             </Picker>
 
-            <Text style={styles.label}>Quantity</Text>
-            <TextInput style={styles.input} value={quantity} onChangeText={setQuantity} placeholder="Enter quantity" />
-            <Text style={styles.label}>Unit</Text>
-            <TextInput style={styles.input} value={unit} onChangeText={setUnit} placeholder="Enter unit " />
+            <Text style={styles.label}>{t('quantity')}</Text>
+            <TextInput style={styles.input} value={quantity} onChangeText={setQuantity} placeholder={t('enterQuantity')}  />
+            <Text style={styles.label}>{t('unit')}</Text>
+            <TextInput style={styles.input} value={unit} onChangeText={setUnit} placeholder={t('enterUnit')}  />
 
             <TouchableOpacity style={styles.addButton} onPress={handleAddIngredientToRecipe}>
-              <Text style={styles.addButtonText}>Add ingredient</Text>
+            <Text style={styles.addButtonText}>{t('addIngredient')}</Text>
             </TouchableOpacity>
 
             <FlatList
@@ -432,10 +430,10 @@ const EditRecipeScreen = ({ navigation, route }) => {
           <View style={styles.container}>
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.cancelButton} onPress={() => navigation.goBack()}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t('cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveButton} onPress={handleEditRecipe}>
-                <Text style={styles.saveButtonText}>Save changes</Text>
+              <Text style={styles.saveButtonText}>{t('saveChanges')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -453,7 +451,7 @@ const EditRecipeScreen = ({ navigation, route }) => {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit recipe</Text>
+        <Text style={styles.headerTitle}>{t("editRecipe")}</Text>
       </View>
 
       <FlatList
@@ -478,19 +476,19 @@ const EditRecipeScreen = ({ navigation, route }) => {
         visible={isModalVisible}>
         <View style={styles.modalOverlay}>
           <View style={styles.modalView}>
-            <Text style={styles.sectionTitle}>Add New Ingredient</Text>
+          <Text style={styles.sectionTitle}>{t("addIngredient")}</Text>
             <TextInput
               style={[styles.input, styles.fullWidthInput]}
               value={newIngredient}
               onChangeText={setNewIngredient}
-              placeholder="New ingredient name"
+              placeholder={t("newIngredientName")}
             />
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.cancelButton} onPress={closeIngredientModal}>
-                <Text style={styles.cancelButtonText}>Cancel</Text>
+              <Text style={styles.cancelButtonText}>{t("cancel")}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.saveButton} onPress={handleAddNewIngredient}>
-                <Text style={styles.saveButtonText}>Add</Text>
+              <Text style={styles.saveButtonText}>{t("add")}</Text>
               </TouchableOpacity>
             </View>
           </View>

@@ -1,9 +1,14 @@
+
+import { browserLocalPersistence } from 'firebase/auth';
 import { StyleSheet } from 'react-native';
 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#E2DDD9',
+    },
+    scrollView: {
+        padding: 16,
     },
     loader: {
         flex: 1,
@@ -19,23 +24,11 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 20,
         borderBottomRightRadius: 20,
         flexDirection: 'row',
+        justifyContent: 'space-between',
         paddingHorizontal: 20,
     },
     backButton: {
         paddingHorizontal: 10,
-    },
-    headerTitle: {
-        fontSize: 28,
-        color: '#333',
-        textAlign: 'center',
-        flex: 1,
-        textTransform: 'uppercase',
-    },
-    filterButton: {
-        paddingHorizontal: 10,
-    },
-    content: {
-        padding: 20,
     },
     image: {
         width: '100%',
@@ -44,6 +37,9 @@ const styles = StyleSheet.create({
         marginBottom: 20,
         borderColor: '#D8D8D8',
         borderWidth: 0.5,
+    },
+    content: {
+        padding: 20,
     },
     infoContainer: {
         flexDirection: 'row',
@@ -62,12 +58,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         marginLeft: 5,
         color: '#4D4E53',
-    },
-    ratingContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flex: 1,
     },
     sectionTitle: {
         fontSize: 18,
@@ -110,76 +100,22 @@ const styles = StyleSheet.create({
         color: '#999',
         marginBottom: 10,
     },
-    scrollView: {
-        paddingHorizontal: 10,
-    },
-    modalOverlay: {
+    
+    headerTitle: {
+        fontSize: 24,
+        color: '#333',
+        textAlign: 'center',
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+        textTransform: 'uppercase',
     },
-    modalContent: {
-        width: 300,
-        backgroundColor: '#fff',
-        padding: 20,
-        borderRadius: 10,
-    },
-    modalTitle: {
+    sectionTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        marginBottom: 15,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: '#ddd',
-        borderRadius: 5,
+        color: '#4D4E53',
         marginBottom: 10,
-        padding: 10,
-    },
-    saveButton: {
-        backgroundColor: '#4CAF50',
-        padding: 10,
-        alignItems: 'center',
-        borderRadius: 5,
-    },
-    saveButtonText: {
-        color: '#fff',
-        fontWeight: 'bold',
-    },
-    cancelButton: {
-        marginTop: 10,
-        alignItems: 'center',
-    },
-    cancelButtonText: {
-        color: '#999',
-        textDecorationLine: 'underline',
-    },
-    fabContainer: {
-        flexDirection: 'column',
-        justifyContent: 'space-evenly',
-        position: 'absolute',
-        bottom: 80,
-        right: 20,
-        width: 60,
-        paddingVertical: 10,
-    },
-    fab: {
-        backgroundColor: '#505050',
-        width: 60,
-        height: 60,
-        borderRadius: 30,
-        justifyContent: 'center',
-        alignItems: 'center',
-        elevation: 5,
-    },
-    modalOverlay: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    },
-    modalView: {
+        marginTop: 15,
+      },
+      modalView: {
         margin: 20,
         backgroundColor: 'white',
         borderRadius: 20,
@@ -188,17 +124,73 @@ const styles = StyleSheet.create({
         width: '80%',
         shadowColor: '#000',
         shadowOffset: {
-            width: 0,
-            height: 2,
+          width: 0,
+          height: 2,
         },
         shadowOpacity: 0.25,
         shadowRadius: 4,
         elevation: 5,
+      },
+
+    modalOverlay: {
+        flex: 1,
+        justifyContent: 'center',    
+        alignItems: 'center',        
+        backgroundColor: 'rgba(0, 0, 0, 0.5)', 
+    },
+    modalContainer: {
+        width: '80%',                
+        backgroundColor: 'white',    
+        borderRadius: 20,            
+        padding: 30,                
+        elevation: 5,               
+        shadowColor: '#000',        
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+        justifyContent: 'center',    
+        alignItems: 'center',       
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginBottom: 15,
+        textAlign: 'center',
+    },
+    categoryItem: {
+        padding: 15,
+        borderBottomWidth: 1,
+        borderBottomColor: '#ddd',
+    },
+    categoryText: {
+        fontSize: 16,
+        color: '#4D4E53',
+    },
+    addCategoryButton: {
+        marginTop: 15,
+        backgroundColor: '#C7BEB9',
+        padding: 10,
+        borderRadius: 5,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    addCategoryText: {
+        color: '#000',
+        fontSize: 16,
+    },
+    input: {
+        width: '100%',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 5,
+        padding: 10,
+        marginBottom: 15,
     },
     buttonContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         width: '100%',
+        marginTop: 15,
     },
     cancelButton: {
         backgroundColor: '#C7BEB9',
@@ -206,29 +198,33 @@ const styles = StyleSheet.create({
         borderRadius: 5,
         flex: 1,
         marginRight: 10,
-    },
-    cancelButtonText: {
+      },
+      cancelButtonText: {
         fontWeight: 'bold',
         textAlign: 'center',
-    },
-    deleteButton: {
+      },
+      saveButton: {
         backgroundColor: '#C7BEB9',
         padding: 10,
         borderRadius: 5,
         flex: 1,
-    },
-    deleteButtonText: {
+      },
+      saveButtonText: {
         fontWeight: 'bold',
         textAlign: 'center',
-    },
-    sectionTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
-        marginBottom: 10,
+      },
+      selectedCategoryText: {
+        fontWeight: 'bold', 
+        color: '#4D4E53',  
     },
 
-   
-
+    addCategoryFooter: {
+        padding: 10,
+        alignItems: 'center',
+        borderTopWidth: 1,
+        borderColor: '#ccc',
+    },
+    
 });
 
 export default styles;

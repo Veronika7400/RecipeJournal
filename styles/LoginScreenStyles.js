@@ -91,6 +91,52 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  imagePreviewContainer: {
+    marginBottom: 10,
+    alignItems: 'center',
+    position: 'relative',
+    width: '100%', 
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 8,
+  },
+  addButtonText: {
+    color: '#000',
+    marginLeft: 10,
+    fontSize: 14,
+  },
+  removeImageButton: {
+    position: 'absolute',
+    right: 0, 
+    top: 0, 
+    borderRadius: 50,
+    padding: 8,
+  },
+  imageButtons: {
+    flexDirection: 'row', 
+    justifyContent: 'space-between',
+    marginBottom: 20,
+  },
+  galleryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    width: '45%', 
+  },
+  cameraButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 10,
+    width: '45%', 
+  },
 });
 
 export default styles;

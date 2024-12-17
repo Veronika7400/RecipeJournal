@@ -6,14 +6,15 @@ import { useUser } from '../UserContext';
 import NavigationButtons from '../components/NavigationButtons';
 import styles from '../styles/CategoryListScreenStyles';
 import { useFocusEffect } from '@react-navigation/native';
+import { useTranslation } from 'react-i18next';
 
-const NavScreen = ({ navigation }) => {
+const CategoryListScreen = ({ navigation }) => {
   const { user } = useUser();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [newCategory, setNewCategory] = useState('');
-
+  const { t } = useTranslation();
   const fetchCategories = async () => {
     try {
       const categoriesCollection = collection(db, 'categories');
@@ -47,12 +48,12 @@ const NavScreen = ({ navigation }) => {
     const categoryExists = categories.some(cat => cat.name === categoryToAdd);
 
     if (newCategory.trim() === '') {
-      alert("Category name cannot be empty.");
+      alert(t('categoryNameEmpty'));
       return;
     }
 
     if (categoryExists) {
-      alert("This category already exists.");
+      alert(t('categoryExists'));
       return;
     }
 
@@ -104,19 +105,19 @@ const NavScreen = ({ navigation }) => {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalView}>
-            <Text style={styles.modalText}>Enter New Category Name:</Text>
+          <Text style={styles.modalText}>{t('enterNewCategory')}</Text>
             <TextInput
               style={styles.textInput}
               onChangeText={setNewCategory}
               value={newCategory}
-              placeholder="Category Name"
+              placeholder={t('categoryNamePlaceholder')}
             />
             <View style={styles.buttonContainer}>
               <TouchableOpacity style={styles.cancelButton} onPress={() => setModalVisible(false)}>
-                <Text style={styles.buttonText}>Cancel</Text>
+              <Text style={styles.buttonText}>{t('cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.addButtonModal} onPress={handleAddCategory}>
-                <Text style={styles.buttonText}>Add</Text>
+              <Text style={styles.buttonText}>{t('add')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -129,4 +130,4 @@ const NavScreen = ({ navigation }) => {
 
 
 
-export default NavScreen;
+export default CategoryListScreen;

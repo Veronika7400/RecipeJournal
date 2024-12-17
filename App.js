@@ -1,8 +1,9 @@
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import { StyleSheet } from 'react-native';
 import { UserProvider } from './UserContext';
+import { I18nextProvider } from 'react-i18next';
+import i18n from './i18n';
 
 import StartScreen from './components/StartScreen';
 import LoginScreen from './components/LoginScreen';
@@ -12,6 +13,9 @@ import AddRecipeScreen from './components/AddRecipeScreen';
 import RecipeDetails from './components/RecipeDetails';
 import ProfileScreen from './components/ProfileScreen';
 import EditRecipe from './components/EditRecipeScreen';
+import DailyMenu from './components/DailyMenu';
+import MenuDetails from './components/MenuDetails';
+import IngredientSearch from './components/IngredientSearch';
 
 const Stack = createStackNavigator();
 
@@ -19,7 +23,8 @@ const Stack = createStackNavigator();
 const App = () => {
   return (
     <UserProvider>
-      <NavigationContainer>
+       <I18nextProvider i18n={i18n}>
+       <NavigationContainer>
         <Stack.Navigator initialRouteName="Start">
           <Stack.Screen
             name="Start"
@@ -66,18 +71,28 @@ const App = () => {
             component={EditRecipe}
             options={{ headerShown: false }}
           />
+          <Stack.Screen
+            name="DailyMenu"
+            component={DailyMenu}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="MenuDetails"
+            component={MenuDetails}
+            options={{ headerShown: false }}
+          />
+           <Stack.Screen
+            name="IngredientSearch"
+            component={IngredientSearch}
+            options={{ headerShown: false }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
+    </I18nextProvider>
+
+ 
     </UserProvider>
   );
 };
-
-const styles = StyleSheet.create({
-  logo: {
-    height: 50,
-    width: 50,
-    marginLeft: 10,
-  },
-});
 
 export default App;

@@ -1,17 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, {  useState } from 'react';
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Image, TextInput } from 'react-native';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs} from 'firebase/firestore';
 import { db } from '../firebaseConfig';
 import { Ionicons } from '@expo/vector-icons';
 import NavigationButtons from '../components/NavigationButtons';
 import styles from '../styles/RecipeListScreenStyles';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native'
+import { useTranslation } from 'react-i18next';
 
 const RecipeListScreen = ({ route, navigation }) => {
   const { categoryName, categoryId, userId } = route.params;
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const { t } = useTranslation();
 
   const fetchRecipes = async () => {
     setLoading(true);
@@ -58,6 +60,10 @@ const RecipeListScreen = ({ route, navigation }) => {
       </View>
     );
   }
+ 
+ 
+  const uploadPDF = async () => {
+   };
 
   return (
     <View style={styles.container}>
@@ -72,7 +78,7 @@ const RecipeListScreen = ({ route, navigation }) => {
       </View>
       <TextInput
         style={styles.searchInput}
-        placeholder="Search recipes..."
+        placeholder={t('searchRecipes')}
         value={searchTerm}
         onChangeText={handleSearch}
       />
@@ -84,7 +90,6 @@ const RecipeListScreen = ({ route, navigation }) => {
                 source={recipe.image ? { uri: recipe.image } : require('../assets/placeholder-image.png')}
                 style={styles.recipeImage}
               />
-
               <View style={styles.recipeDetails}>
                 <Text style={styles.recipeTitle}>{recipe.title}</Text>
                 <View style={styles.recipeInfoContainer}>
@@ -104,14 +109,19 @@ const RecipeListScreen = ({ route, navigation }) => {
         </ScrollView>
       ) : (
         <View style={styles.emptyContainer}>
-          <Text style={styles.emptyText}>No recipes in this category.</Text>
-          <Text style={styles.emptySubtext}>Add the first recipe by tapping +</Text>
-        </View>
+        <Text style={styles.emptyText}>{t('noRecipes')}</Text> 
+          <Text style={styles.emptySubtext}>{t('addFirstRecipe')}</Text> 
+         </View>
       )}
 
-      <TouchableOpacity style={styles.fab} onPress={handleAddRecipe}>
-        <Ionicons name="add" size={24} color="#FFF" />
-      </TouchableOpacity>
+      <View style={styles.fabContainer}>
+        <TouchableOpacity style={styles.fab} onPress={uploadPDF}>
+          <Ionicons name="cloud-upload-outline" size={24} color="#FFF" />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.fab} onPress={handleAddRecipe}>
+          <Ionicons name="add" size={24} color="#FFF" />
+        </TouchableOpacity>
+      </View>
       <NavigationButtons navigation={navigation} />
     </View>
   );
